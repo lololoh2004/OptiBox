@@ -12,7 +12,7 @@ public class RadialMenu : MonoBehaviour
     [Space(10)]
     [Header("= Graphic cfg =")]
     [SerializeField] Vector2 circleScale = new Vector2(2.7f, 2.7f);
-    [SerializeField][Range(0, 2)] float animSpeed = 1;
+    //[SerializeField][Range(0, 2)] float animSpeed = 1;
 
     [Space(10)]
     [Header("= Components cfg =")]

@@ -10,6 +10,7 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] float speed = 5f;
     [Space(5)]
     [SerializeField] Transform camTransform;
+    [SerializeField] RayManager RayManager;
     [SerializeField] GameObject skin;
     [Space(10)]
     [Header("= Player cfg =")]
@@ -18,23 +19,23 @@ public class PlayerScript : MonoBehaviour
 
     Rigidbody rb;
     MeshRenderer skinMR;
+    CapsuleCollider coll;
     Vector3 direction;
     float camCurrentHeight;
     float camStartHeight;
-    bool isGrounded = false;
+    float collStartHeight;
 
-    // Start is called before the first frame update
     void Start()
     {
         // components
         rb = GetComponent<Rigidbody>();
         skinMR = skin.GetComponent<MeshRenderer>();
+        coll = GetComponent<CapsuleCollider>();
 
-        // other shi
         camStartHeight = camTransform.position.y;
+        collStartHeight = coll.height;
     }
 
-    // Update is called once per frame
     void Update()
     {
         float keyX = Input.GetAxis("Horizontal");
@@ -65,37 +66,35 @@ public class PlayerScript : MonoBehaviour
         {
             camType = (camType + 1) % 2; // 2 is an amount of types
         }
-        if (Input.GetKey(KeyCode.LeftControl))
+        if (Input.GetKeyDown(KeyCode.LeftControl))
         {
             camCurrentHeight = camStartHeight / 2;
+            coll.height = collStartHeight / 2;
+            transform.position = new Vector3(transform.position.x, transform.position.y - (transform.position.y * 2), transform.position.z);
         }
-        else
+        if (Input.GetKeyUp(KeyCode.LeftControl))
         {
             camCurrentHeight = camStartHeight;
+            coll.height = collStartHeight;
+
+            transform.position = new Vector3(transform.position.x, transform.position.y - (transform.position.y * 2), transform.position.z);
         }
-        if (isGrounded)
+        if (RayManager.isDownHit)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                rb.AddForce(new Vector3(0, jumpForce, 0), ForceMode.Impulse);
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             }
         }
-    }
-
-    private void FixedUpdate()
-    {
-        rb.MovePosition(transform.position + direction * speed * Time.fixedDeltaTime);
-
-    }
-    private void OnCollisionStay(Collision other)
-    {
-        if (other != null)
+        if (Input.GetKeyDown(KeyCode.LeftShift))
         {
-            isGrounded = true;
+            speed *= 2;
+        }
+        if (Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            speed /= 2;
         }
     }
-    private void OnCollisionExit(Collision other)
-    {
-        isGrounded = false;
-    }
+
+    private void FixedUpdate() { rb.MovePosition(transform.position + direction * speed * Time.fixedDeltaTime); }
 }

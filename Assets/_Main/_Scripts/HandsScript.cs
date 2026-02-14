@@ -8,9 +8,13 @@ public class HandsScript : MonoBehaviour
     [Header("= Phys cfg =")]
     [SerializeField] private float Speed = 12f;      // Speed of following
     [SerializeField] private float sensitivity = 5f;
+    [SerializeField] LayerMask ignoreLayer;
 
     private Rigidbody grabbedObj;
     private float holdDistance;
+    private Collision lastCollision;
+
+    
 
     void Update()
     {
@@ -58,6 +62,34 @@ public class HandsScript : MonoBehaviour
             {
                 ReleaseObject();
             }
+            if (Input.GetKeyDown(KeyCode.C) && grabbedObj != null)
+            {
+                RaycastHit hit;
+                // Ray from grabbedObj
+                if (Physics.Raycast(grabbedObj.position, cam.transform.forward, out hit, 2f, ~ignoreLayer))
+                {
+                    if (hit.transform != grabbedObj.transform)
+                    {
+                        // Save
+                        //Vector3 worldScale = grabbedObj.transform.lossyScale;
+                        Quaternion worldRot = grabbedObj.transform.rotation;
+                        Vector3 worldPos = grabbedObj.transform.position;
+
+                        // Weld
+                        grabbedObj.transform.SetParent(hit.transform);
+
+                        //grabbedObj.transform.position = worldPos;
+                        //grabbedObj.transform.rotation = worldRot;
+                        //grabbedObj.transform.localScale = new Vector3(1, 1, 1);
+
+                        grabbedObj.isKinematic = true;
+                        Destroy(grabbedObj);
+                        grabbedObj = null;
+
+                        Debug.Log("Welded!");
+                    }
+                }
+            }
         }
     }
 
@@ -80,5 +112,15 @@ public class HandsScript : MonoBehaviour
             if (!grabbedObj.isKinematic) grabbedObj.useGravity = true; // If u freeze obj this wont work and all will be chikipuki 
             grabbedObj = null;                                         // Clear buffer for stability
         }
+    }
+
+    void OnCollisionStay(Collision collision) 
+    {
+        lastCollision = collision; 
+        Debug.Log(collision.ToString());
+    }
+    void OnCollisionExit(Collision collision) 
+    { 
+        lastCollision = null; 
     }
 }
